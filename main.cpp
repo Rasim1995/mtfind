@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
     for( const auto& occur : occurs )
     {
-        std::cout << occur.first << " "
+        std::cout << occur.first + 1 << " "
                   << occur.second.first + 1 << " "
                   << occur.second.second
                   << " " << std::endl;

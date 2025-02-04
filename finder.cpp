@@ -24,7 +24,7 @@ Finder::ResType Finder::FindAllOccurs(string file_path, string mask)
 
     auto file_size = std::filesystem::file_size(file_path);
 
-    std::cout << "file size = " << file_size << std::endl;
+    logger << "file size = " << file_size << '\n';
 
     InitRegexpPattern(mask);
     DistributeTasks(stream, file_size, CalcOptimalPartSize(file_size));
@@ -34,24 +34,26 @@ Finder::ResType Finder::FindAllOccurs(string file_path, string mask)
 
 void Finder::InitRegexpPattern(const string& mask)
 {
-    string regex_content;
-    regex_content.reserve(mask.size());
+    Logger logger(__FUNCTION__, mask);
 
-    for(const auto ch : mask)
+    // Делаем из маски регулярку, экранировав спецсимволы
+    std::regex special_symbools(R"([\.\+\*\^\$\(\)\[\]\{\}\|\\])");
+    string regex_content = std::regex_replace(mask, special_symbools, "\\$&");
+    // и заменив спецсимвол маски '?', обозначающий либой символ, на точку
+    std::regex question_mark(R"(\?)");
+    regex_content = std::regex_replace(regex_content, question_mark, ".");
+
+    std::cout << "regex contetn = " << regex_content << '\n';
+
+    try
     {
-        switch (ch) {
-        case '?':
-            regex_content+= '.';
-            break;
-        case '.':
-            regex_content+= "\\.";
-        default:
-            regex_content+= ch;
-            break;
-        }
+        m_pattern.assign(regex_content);
+    } catch (std::exception &ex)
+    {
+        std::cerr << "ERROR: Failed to generate correct regular expression using mask "
+                  << mask << ". Details: " << ex.what() << '\n';
+        std::exit(-1);
     }
-
-    m_pattern.assign(regex_content);
 }
 
 bool Finder::ReadLines(std::ifstream& stream, size_t max_bytes_count, size_t& curr_line_number, LinesType& res_lines_buffer)
@@ -161,10 +163,12 @@ size_t Finder::GetFreeWorkBuffer()
 std::optional<std::pair<size_t, string>> Finder::ProcessOneLine(const string& line)
 {
     Logger logger(__FUNCTION__, line);
+
+    std::optional<std::pair<size_t, string>> res;
+
     std::smatch occur;
     std::regex_search(line, occur, m_pattern);
 
-    std::optional<std::pair<size_t, string>> res;
     if(occur.size())
         res = {occur.position(), occur.str()};
 
