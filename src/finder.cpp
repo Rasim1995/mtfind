@@ -43,12 +43,11 @@ void Finder::InitRegexpPattern(const string& mask)
     std::regex question_mark(R"(\?)");
     regex_content = std::regex_replace(regex_content, question_mark, ".");
 
-    std::cout << "regex contetn = " << regex_content << '\n';
-
     try
     {
         m_pattern.assign(regex_content);
-    } catch (std::exception &ex)
+    }
+    catch (std::exception &ex)
     {
         std::cerr << "ERROR: Failed to generate correct regular expression using mask "
                   << mask << ". Details: " << ex.what() << '\n';
