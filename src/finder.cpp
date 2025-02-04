@@ -18,8 +18,8 @@ Finder::ResType Finder::FindAllOccurs(string file_path, string mask)
 
     if(!stream.is_open())
     {
-        std::cout << "Could not open the file " << file_path << "!\n";
-        return m_all_occurs;
+        std::cerr << "Could not open the file " << file_path << "!\n";
+        std::exit(-1);
     }
 
     auto file_size = std::filesystem::file_size(file_path);
